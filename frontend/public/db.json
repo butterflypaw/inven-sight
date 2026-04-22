@@ -1,0 +1,119 @@
+{
+    "dashboard": {
+        "totalScanned": 542,
+        "damagedCount": 110,
+        "stockCount": 389
+    },
+    "details": [
+        {
+            "id": "A001",
+            "productName": "Box 1",
+            "sku": "SKU-001",
+            "image": "/box1.jpeg",
+            "damage": "Intact",
+            "shippedFrom": "Delhi",
+            "confidence": 100,
+            "timestamp": "2025-06-22T10:00:00"
+        },
+        {
+            "id": "A002",
+            "productName": "Box 2",
+            "sku": "SKU-002",
+            "image": "/box2.jpeg",
+            "damage": "Damaged",
+            "shippedFrom": "Mumbai",
+            "confidence": 76,
+            "timestamp": "2025-06-22T11:00:00"
+        },
+        {
+            "id": "A003",
+            "productName": "Box 3",
+            "sku": "SKU-003",
+            "image": "/box3.jpeg",
+            "damage": "Damaged",
+            "shippedFrom": "Kolkata",
+            "confidence": 91,
+            "timestamp": "2025-06-22T12:15:00"
+        },
+        {
+            "id": "A004",
+            "productName": "Box 4",
+            "sku": "SKU-004",
+            "image": "/box4.jpeg",
+            "damage": "Damaged",
+            "shippedFrom": "Hyderabad",
+            "confidence": 84,
+            "timestamp": "2025-06-22T13:05:00"
+        },
+        {
+            "id": "A005",
+            "productName": "Box 1",
+            "sku": "SKU-005",
+            "image": "/box1.jpeg",
+            "damage": "Damaged",
+            "shippedFrom": "Bangalore",
+            "confidence": 89,
+            "timestamp": "2025-06-22T13:50:00"
+        },
+        {
+            "id": "A006",
+            "productName": "Box 2",
+            "sku": "SKU-006",
+            "image": "/box2.jpeg",
+            "damage": "Intact",
+            "shippedFrom": "Ahmedabad",
+            "confidence": 100,
+            "timestamp": "2025-06-22T14:30:00"
+        },
+        {
+            "id": "A007",
+            "productName": "Box 3",
+            "sku": "SKU-007",
+            "image": "/box3.jpeg",
+            "damage": "Damaged",
+            "shippedFrom": "Jaipur",
+            "confidence": 94,
+            "timestamp": "2025-06-22T15:20:00"
+        },
+        {
+            "id": "A008",
+            "productName": "Box 4",
+            "sku": "SKU-008",
+            "image": "/box4.jpeg",
+            "damage": "Damaged",
+            "shippedFrom": "Lucknow",
+            "confidence": 79,
+            "timestamp": "2025-06-22T16:00:00"
+        },
+        {
+            "id": "A009",
+            "productName": "Box 1",
+            "sku": "SKU-009",
+            "image": "/box1.jpeg",
+            "damage": "Intact",
+            "shippedFrom": "Chennai",
+            "confidence": 88,
+            "timestamp": "2025-06-22T16:45:00"
+        },
+        {
+            "id": "A010",
+            "productName": "Box 2",
+            "sku": "SKU-010",
+            "image": "/box2.jpeg",
+            "damage": "Damaged",
+            "shippedFrom": "Pune",
+            "confidence": 41,
+            "timestamp": "2025-06-22T17:30:00"
+        },
+        {
+            "id": "A011",
+            "productName": "Box 3",
+            "sku": "SKU-011",
+            "image": "/box3.jpeg",
+            "damage": "Damaged",
+            "shippedFrom": "Nagpur",
+            "confidence": 90,
+            "timestamp": "2025-06-22T18:00:00"
+        }
+    ]
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "sku": "BX-101",
+    "name": "Wireless Mouse",
+    "warehouse": "Warehouse A",
+    "stock": 44,
+    "reserved": 8,
+    "damageRisk": "Low"
+  },
+  {
+    "sku": "BX-102",
+    "name": "Mechanical Keyboard",
+    "warehouse": "Warehouse B",
+    "stock": 21,
+    "reserved": 12,
+    "damageRisk": "Medium"
+  },
+  {
+    "sku": "BX-103",
+    "name": "HD Monitor",
+    "warehouse": "Warehouse C",
+    "stock": 9,
+    "reserved": 6,
+    "damageRisk": "High"
+  },
+  {
+    "sku": "BX-104",
+    "name": "USB Webcam",
+    "warehouse": "Warehouse D",
+    "stock": 67,
+    "reserved": 11,
+    "damageRisk": "Low"
+  },
+  {
+    "sku": "BX-105",
+    "name": "Bluetooth Speaker",
+    "warehouse": "Warehouse A",
+    "stock": 12,
+    "reserved": 5,
+    "damageRisk": "Medium"
+  },
+  {
+    "sku": "BX-106",
+    "name": "External Hard Drive",
+    "warehouse": "Warehouse B",
+    "stock": 6,
+    "reserved": 4,
+    "damageRisk": "High"
+  }
+]

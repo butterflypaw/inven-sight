@@ -1,0 +1,146 @@
+.alerts-page {
+  border: 1px solid #dbe1ec;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 18px;
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.07);
+}
+
+.alerts-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.alerts-hero h2 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.alerts-hero p {
+  margin: 4px 0 0;
+  color: #64748b;
+  max-width: 640px;
+}
+
+.alerts-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.outline-btn,
+.filled-btn,
+.ack-btn {
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+
+.outline-btn {
+  border: 1px solid #cfd8ea;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.filled-btn,
+.ack-btn {
+  border: none;
+  background: linear-gradient(120deg, #0284c7 0%, #0ea5a1 100%);
+  color: #ffffff;
+}
+
+.alerts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.alert-card {
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid #dbe1ec;
+  background: #f8fbff;
+}
+
+.alert-card h3 {
+  margin: 8px 0;
+}
+
+.alert-card p {
+  margin: 4px 0;
+  color: #475569;
+}
+
+.alert-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.severity {
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.severity.high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.severity.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.alert-card.high {
+  border-color: #fecaca;
+}
+
+.alert-card.medium {
+  border-color: #fde68a;
+}
+
+.alert-card.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
+.layout.theme-dark .alerts-page {
+  background: var(--surface-elevated);
+  border-color: var(--line);
+}
+
+.layout.theme-dark .alerts-hero h2 {
+  color: var(--text-strong);
+}
+
+.layout.theme-dark .alerts-hero p,
+.layout.theme-dark .alert-card p {
+  color: var(--text-muted);
+}
+
+.layout.theme-dark .alert-card {
+  background: #0f1f35;
+  border-color: var(--line);
+}
+
+.layout.theme-dark .outline-btn {
+  background: #13243b;
+  color: #dce8f9;
+  border-color: var(--line);
+}
+
+@media (max-width: 960px) {
+  .alerts-grid {
+    grid-template-columns: 1fr;
+  }
+}

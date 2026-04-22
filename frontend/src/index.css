@@ -1,0 +1,67 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(circle at 12% 6%, rgba(14, 165, 161, 0.12) 0%, transparent 28%),
+    radial-gradient(circle at 86% 4%, rgba(2, 132, 199, 0.12) 0%, transparent 30%),
+    linear-gradient(180deg, #f7fbff 0%, #f2f6fb 100%);
+  color: #111827;
+}
+
+::selection {
+  background: rgba(14, 165, 161, 0.24);
+  color: #0f172a;
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e8eef7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #0ea5a1 0%, #0284c7 100%);
+  border-radius: 999px;
+  border: 2px solid #e8eef7;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #0f766e 0%, #0369a1 100%);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}

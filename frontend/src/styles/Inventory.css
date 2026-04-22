@@ -1,0 +1,230 @@
+.inventory-page {
+  border: 1px solid #dbe1ec;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 18px;
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.07);
+}
+
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.inventory-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.inventory-header p {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.layout.theme-dark .inventory-page,
+.layout.theme-dark .inventory-kpis article,
+.layout.theme-dark .inventory-table-wrap,
+.layout.theme-dark .inventory-table th,
+.layout.theme-dark .inventory-table td {
+  color: #dce8f9;
+}
+
+.layout.theme-dark .inventory-page,
+.layout.theme-dark .inventory-table-wrap {
+  background: #101a2d;
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+.layout.theme-dark .inventory-header h2,
+.layout.theme-dark .inventory-header p,
+.layout.theme-dark .inventory-kpis span,
+.layout.theme-dark .inventory-kpis strong {
+  color: #dce8f9;
+}
+
+.layout.theme-dark .inventory-table th {
+  background: #13243b;
+  color: #dce8f9;
+}
+
+.layout.theme-dark .inventory-table tr:hover {
+  background: #0f1f35;
+}
+
+.layout.theme-dark .inventory-tools input,
+.layout.theme-dark .inventory-tools select {
+  background: #0f1f35;
+  border-color: rgba(148, 163, 184, 0.2);
+  color: #dce8f9;
+}
+
+.export-btn {
+  border: none;
+  background: linear-gradient(120deg, #0ea5a1 0%, #0284c7 100%);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inventory-kpis {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.inventory-kpis article {
+  border: 1px solid #dbe1ec;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f8fbff;
+}
+
+.inventory-kpis span {
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
+.inventory-kpis strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.45rem;
+}
+
+.inventory-tools {
+  margin: 14px 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inventory-tools input,
+.inventory-tools select {
+  border: 1px solid #d1d9e6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.inventory-tools input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.inventory-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dbe1ec;
+  border-radius: 12px;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 780px;
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: 12px;
+  border-bottom: 1px solid #edf1f7;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.preview-cell {
+  width: 88px;
+  text-align: center;
+}
+
+.preview-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid #d8deea;
+  background: linear-gradient(135deg, #ffffff 0%, #f4f8fd 100%);
+  color: #0ea5a1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.preview-icon-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+}
+
+.inventory-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #dbe1ec;
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.1);
+}
+
+.inventory-table th {
+  background: #f7f9fd;
+  color: #374151;
+}
+
+.availability-chip {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.availability-chip.safe {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.availability-chip.warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.availability-chip.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.risk-pill {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.risk-pill.low {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.risk-pill.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.risk-pill.high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@media (max-width: 900px) {
+  .inventory-kpis {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "productName": "Sample Product",
+    "sku": "SM-100",
+    "damage": "intact",
+    "confidence": 54.54,
+    "shippedFrom": "Warehouse A",
+    "timestamp": "2026-04-22T06:19:57Z",
+    "filename": "intact2.jpeg"
+  },
+  {
+    "id": 2,
+    "productName": "Wireless Mouse",
+    "sku": "MOU123",
+    "damage": "intact",
+    "confidence": 96.2,
+    "shippedFrom": "Warehouse A",
+    "timestamp": "2026-04-22T06:01:00Z",
+    "filename": "init1.jpg",
+    "seeded": true
+  },
+  {
+    "id": 3,
+    "productName": "Mechanical Keyboard",
+    "sku": "KEY456",
+    "damage": "damaged",
+    "confidence": 81.7,
+    "shippedFrom": "Warehouse B",
+    "timestamp": "2026-04-22T06:04:00Z",
+    "filename": "init2.jpg",
+    "seeded": true
+  },
+  {
+    "id": 4,
+    "productName": "HD Monitor",
+    "sku": "MON789",
+    "damage": "intact",
+    "confidence": 93.1,
+    "shippedFrom": "Warehouse C",
+    "timestamp": "2026-04-22T06:06:00Z",
+    "filename": "init3.jpg",
+    "seeded": true
+  },
+  {
+    "id": 5,
+    "productName": "USB Webcam",
+    "sku": "WEB999",
+    "damage": "damaged",
+    "confidence": 74.8,
+    "shippedFrom": "Warehouse D",
+    "timestamp": "2026-04-22T06:08:00Z",
+    "filename": "init4.jpg",
+    "seeded": true
+  },
+  {
+    "id": 6,
+    "productName": "Bluetooth Speaker",
+    "sku": "SPK321",
+    "damage": "intact",
+    "confidence": 91.4,
+    "shippedFrom": "Warehouse A",
+    "timestamp": "2026-04-22T06:10:00Z",
+    "filename": "init5.jpg",
+    "seeded": true
+  },
+  {
+    "id": 7,
+    "productName": "External Hard Drive",
+    "sku": "HDD654",
+    "damage": "damaged",
+    "confidence": 69.5,
+    "shippedFrom": "Warehouse B",
+    "timestamp": "2026-04-22T06:13:00Z",
+    "filename": "init6.jpg",
+    "seeded": true
+  },
+  {
+    "id": 8,
+    "productName": "Unknown Product",
+    "sku": "N/A",
+    "damage": "damaged",
+    "confidence": 50.38,
+    "shippedFrom": "Unknown",
+    "timestamp": "2026-04-22T08:29:54Z",
+    "filename": "webcam.jpg"
+  },
+  {
+    "id": 9,
+    "productName": "Unknown Product",
+    "sku": "N/A",
+    "damage": "damaged",
+    "confidence": 50.38,
+    "shippedFrom": "Unknown",
+    "timestamp": "2026-04-22T08:31:18Z",
+    "filename": "webcam.jpg"
+  }
+]
