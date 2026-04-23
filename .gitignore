@@ -7,3 +7,5 @@
 /backend/uploads/
 /backend/model_large/
 /backend/model/*.h5
+/backend/venv
+/docs
