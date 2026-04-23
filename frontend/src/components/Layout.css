@@ -77,13 +77,20 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 2px 14px;
-    margin-bottom: 8px;
+    padding: 8px 4px 18px;
+    margin-bottom: 10px;
+}
+
+.brand-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
 }
 
 .logo {
     width: 100%;
-    max-width: 138px;
+    max-width: 168px;
     display: block;
     filter: drop-shadow(0 12px 24px rgba(2, 132, 199, 0.24));
 }
@@ -92,6 +99,8 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(125, 211, 252, 0.18);
 }
 
 .nav-link {
@@ -104,6 +113,8 @@
     border-radius: 12px;
     transition: all 0.2s ease;
     border: 1px solid transparent;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
 .nav-link:hover {
@@ -113,6 +124,9 @@
 
 .nav-link .icon {
     font-size: 1rem;
+    width: 18px;
+    min-width: 18px;
+    text-align: center;
 }
 
 .active-link {
@@ -136,7 +150,7 @@
 
 .topbar {
     display: grid;
-    grid-template-columns: 1.3fr 1fr auto;
+    grid-template-columns: 1fr auto;
     gap: 14px;
     align-items: center;
     margin-bottom: 22px;
@@ -146,6 +160,7 @@
     padding: 12px 14px;
     box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
     backdrop-filter: blur(8px);
+    position: relative;
 }
 
 .topbar-left {
@@ -179,24 +194,6 @@
     color: var(--text-muted);
 }
 
-.search {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--surface-card);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 12px;
-    box-shadow: 0 16px 35px rgba(15, 23, 42, 0.08);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.search:focus-within {
-    border-color: color-mix(in srgb, var(--accent-strong) 45%, var(--line));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-strong) 20%, transparent),
-        0 20px 35px rgba(15, 23, 42, 0.1);
-}
-
 .layout.theme-dark .nav-link {
     color: #c7d5ea;
 }
@@ -206,26 +203,13 @@
     border-color: rgba(125, 211, 252, 0.12);
 }
 
-.layout.theme-dark .search,
 .layout.theme-dark .theme-btn {
     box-shadow: 0 16px 34px rgba(2, 8, 23, 0.32);
-}
-
-.layout.theme-dark .search {
-    background: rgba(16, 26, 45, 0.96);
-}
-
-.layout.theme-dark .search input {
-    color: var(--text-main);
 }
 
 .layout.theme-dark .menu-toggle,
 .layout.theme-dark .theme-btn {
     background: rgba(16, 26, 45, 0.96);
-}
-
-.layout.theme-dark .active-link {
-    box-shadow: 0 14px 34px rgba(2, 132, 199, 0.18);
 }
 
 .layout.theme-dark .dashboard-header,
@@ -250,6 +234,24 @@
     background:
         linear-gradient(115deg, rgba(14, 165, 161, 0.15) 0%, rgba(2, 132, 199, 0.12) 55%, rgba(16, 26, 45, 0.96) 100%),
         var(--surface-elevated);
+}
+
+.layout.theme-dark .insight-card.warning {
+    background: #3a2b12;
+    border-color: #7c5a1f;
+    color: #f4d8a8;
+}
+
+.layout.theme-dark .insight-card.success {
+    background: #16392c;
+    border-color: #2d6b55;
+    color: #bfe9d5;
+}
+
+.layout.theme-dark .insight-card.info {
+    background: #1a2f52;
+    border-color: #315288;
+    color: #c9dbff;
 }
 
 .layout.theme-dark .dashboard-header-banner h1,
@@ -361,19 +363,6 @@
     filter: invert(0.9) brightness(1.1);
 }
 
-.search input {
-    border: none;
-    outline: none;
-    width: 100%;
-    font-size: 0.92rem;
-    background: transparent;
-    color: var(--text-main);
-}
-
-.search-icon {
-    color: var(--accent-strong);
-}
-
 .top-actions {
     display: flex;
     align-items: center;
@@ -465,7 +454,26 @@
         justify-content: flex-start;
     }
 
-    .search {
-        min-width: 0;
+}
+
+.logout-btn {
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.logout-btn:hover,
+.menu-toggle:hover,
+.theme-btn:hover {
+    border-color: color-mix(in oklab, var(--accent-strong) 36%, var(--line));
+}
+
+@media (max-width: 900px) {
+    .logo {
+        max-width: 150px;
     }
 }

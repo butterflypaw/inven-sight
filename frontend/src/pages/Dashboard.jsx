@@ -7,32 +7,60 @@ import { fetchDashboardStats, fetchDetails } from "../services/api";
 import { FaArrowTrendDown, FaArrowTrendUp, FaShieldHalved } from "react-icons/fa6";
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({
-    totalScanned: 287,
-    damagedCount: 40,
-  });
+  const [stats, setStats] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [alerts, setAlerts] = useState([]);
 
   const buildTrend = (rows) => {
-    const slots = Array.from({ length: 7 }, (_, idx) => ({
-      key: idx,
-      damaged: 0,
-      intact: 0,
-    }));
+    const toLocalDayKey = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
 
-    rows.slice(0, 70).forEach((item, idx) => {
-      const slotIndex = idx % 7;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const daySlots = Array.from({ length: 7 }, (_, idx) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (6 - idx));
+      const key = toLocalDayKey(date);
+      return {
+        key,
+        label: date.toLocaleDateString(undefined, { weekday: "short" }),
+        damaged: 0,
+        intact: 0,
+      };
+    });
+
+    const slotMap = daySlots.reduce((acc, slot) => {
+      acc[slot.key] = slot;
+      return acc;
+    }, {});
+
+    rows.forEach((item) => {
+      const rawTimestamp = item?.timestamp;
+      if (!rawTimestamp) return;
+      const date = new Date(rawTimestamp);
+      if (Number.isNaN(date.getTime())) return;
+
+      const dayKey = toLocalDayKey(date);
+      const slot = slotMap[dayKey];
+      if (!slot) return;
+
       if (String(item.damage).toLowerCase() === "damaged") {
-        slots[slotIndex].damaged += 1;
+        slot.damaged += 1;
       } else {
-        slots[slotIndex].intact += 1;
+        slot.intact += 1;
       }
     });
 
     return {
-      damaged: slots.map((s) => s.damaged),
-      intact: slots.map((s) => s.intact),
+      labels: daySlots.map((s) => s.label),
+      damaged: daySlots.map((s) => s.damaged),
+      intact: daySlots.map((s) => s.intact),
     };
   };
 
@@ -41,26 +69,60 @@ const Dashboard = () => {
       try {
         const statsRes = await fetchDashboardStats();
         const alertsRes = await fetchDetails();
-        setStats(statsRes.data);
+        setStats(statsRes.data || { totalScanned: 0, damagedCount: 0 });
         setAlerts(alertsRes.data);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
+        setStats({ totalScanned: 0, damagedCount: 0 });
         setAlerts([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadDashboard();
-    const interval = window.setInterval(loadDashboard, 7000);
+    const interval = window.setInterval(loadDashboard, 20000);
 
     return () => window.clearInterval(interval);
   }, []);
 
-  const intactCount = Math.max(0, stats.totalScanned - stats.damagedCount);
-  const damageRate = stats.totalScanned
-    ? ((stats.damagedCount / stats.totalScanned) * 100).toFixed(1)
+  const safeStats = stats || { totalScanned: 0, damagedCount: 0 };
+
+  const intactCount = Math.max(0, safeStats.totalScanned - safeStats.damagedCount);
+  const damageRate = safeStats.totalScanned
+    ? ((safeStats.damagedCount / safeStats.totalScanned) * 100).toFixed(1)
     : "0.0";
-  const healthScore = Math.max(0, 100 - Number(damageRate));
+  const intactRate = safeStats.totalScanned
+    ? ((intactCount / safeStats.totalScanned) * 100).toFixed(1)
+    : "0.0";
   const trend = buildTrend(alerts);
+  const damagedVsIntact = safeStats.damagedCount - intactCount;
+  const riskTrendText =
+    safeStats.totalScanned === 0
+      ? "No scans yet. Start scanning boxes to build a risk trend."
+      : damagedVsIntact > 0
+        ? "Damaged items are ahead of intact items. Recheck the highest-risk boxes and tighten conveyor inspection."
+        : Number(damageRate) >= 25
+          ? "Damage is elevated. Keep an eye on packaging quality and aisle-level handling."
+          : "Damage is under control. Keep the current inspection flow running.";
+
+  const recoverySignalText =
+    safeStats.totalScanned === 0
+      ? "Recovery signal will appear after the first scans land."
+      : intactCount >= safeStats.damagedCount
+        ? "Intact flow is stronger than damaged flow. Continue the current packing process and monitor the trend."
+        : "Recovery is not stable yet. Focus on reducing damaged detections before scaling up throughput.";
+
+  const aiSuggestionText =
+    safeStats.totalScanned === 0
+      ? "Use consistent box framing and capture at least one sample to activate smarter guidance."
+      : damagedVsIntact > 0
+        ? "Capture two angles for each box and slow the conveyor window slightly to confirm borderline damaged cases."
+        : Number(damageRate) >= 25
+          ? "Keep the camera centered on the box seam and inspect cartons under better light to reduce false damage calls."
+          : "Current detection looks healthy. Maintain the present scanning cadence and keep uploading only box/package images.";
+
+  const formatMetric = (value) => (isLoading ? "--" : value);
 
   return (
     <div className="dashboard-header-banner">
@@ -71,13 +133,13 @@ const Dashboard = () => {
         <div className="header-stats">
           <div className="header-stat-card">
             <span className="label">Damage Rate</span>
-            <strong>{damageRate}%</strong>
+            <strong>{isLoading ? "--" : `${damageRate}%`}</strong>
             <span className="muted">Last 24 hours</span>
           </div>
           <div className="header-stat-card">
-            <span className="label">System Health</span>
-            <strong>{healthScore}%</strong>
-            <span className="muted">Model + camera reliability</span>
+            <span className="label">Intact Rate</span>
+            <strong>{isLoading ? "--" : `${intactRate}%`}</strong>
+            <span className="muted">Share of scans marked intact</span>
           </div>
         </div>
       </div>
@@ -85,21 +147,24 @@ const Dashboard = () => {
       <div className="dashboard-cards">
         <Card
           title="Total Scanned Today"
-          value={stats.totalScanned}
+          value={formatMetric(safeStats.totalScanned)}
           color="#2563eb"
+          loading={isLoading}
           chart={
             <DonutChart
-              damaged={stats.damagedCount}
+              damaged={safeStats.damagedCount}
               intact={intactCount}
             />
           }
         />
         <Card
           title="Damaged Items"
-          value={stats.damagedCount}
+          value={formatMetric(safeStats.damagedCount)}
           color="#dc2626"
+          loading={isLoading}
           chart={
             <DamagedLineChart
+              labels={trend.labels}
               displayData={trend.damaged}
               color="#dc2626"
               label="Damaged Items"
@@ -108,10 +173,12 @@ const Dashboard = () => {
         />
         <Card
           title="Intact Items"
-          value={intactCount}
+          value={formatMetric(intactCount)}
           color="#16a34a"
+          loading={isLoading}
           chart={
             <DamagedLineChart
+              labels={trend.labels}
               displayData={trend.intact}
               color="#16a34a"
               label="Intact Items"
@@ -125,30 +192,21 @@ const Dashboard = () => {
           <FaArrowTrendUp className="insight-icon" />
           <div>
             <h3>Risk Trend</h3>
-            <p>
-              Damaged detections are above baseline. Trigger an aisle-level recheck
-              for high-risk SKUs.
-            </p>
+            <p>{riskTrendText}</p>
           </div>
         </div>
         <div className="insight-card success">
           <FaArrowTrendDown className="insight-icon" />
           <div>
             <h3>Recovery Signal</h3>
-            <p>
-              Intact flow is stabilizing in the latest scans. Continue current
-              packaging process for now.
-            </p>
+            <p>{recoverySignalText}</p>
           </div>
         </div>
         <div className="insight-card info">
           <FaShieldHalved className="insight-icon" />
           <div>
             <h3>AI Suggestion</h3>
-            <p>
-              Improve confidence by capturing two angles for large cartons in
-              low-light zones.
-            </p>
+            <p>{aiSuggestionText}</p>
           </div>
         </div>
       </div>
@@ -163,8 +221,8 @@ const Dashboard = () => {
 };
 
 // Card component with optional chart support
-const Card = ({ title, value, color, chart }) => (
-  <div className="stat-card" style={{ borderTop: `4px solid ${color}` }}>
+const Card = ({ title, value, color, chart, loading }) => (
+  <div className={`stat-card ${loading ? "is-loading" : ""}`} style={{ borderTop: `4px solid ${color}` }}>
     <h3>{title}</h3>
     <p>{value}</p>
     {chart && <div className="card-chart">{chart}</div>}

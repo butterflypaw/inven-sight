@@ -109,6 +109,12 @@
   background: #f7f9fd;
 }
 
+.loading-row {
+  text-align: center;
+  color: #64748b;
+  font-weight: 600;
+}
+
 .layout.theme-dark .page-title,
 .layout.theme-dark .detail-table td,
 .layout.theme-dark .detail-table th,

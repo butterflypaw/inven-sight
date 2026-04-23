@@ -6,6 +6,7 @@ import { FaEye } from "react-icons/fa";
 
 const Details = () => {
   const [details, setDetails] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [detailsPerPage, setDetailsPerPage] = useState(10);
@@ -24,11 +25,13 @@ const Details = () => {
       } catch (error) {
         console.error("Failed to fetch details:", error);
         setDetails([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadDetails();
-    const interval = window.setInterval(loadDetails, 7000);
+    const interval = window.setInterval(loadDetails, 20000);
 
     return () => window.clearInterval(interval);
   }, []);
@@ -71,7 +74,7 @@ const Details = () => {
       ).toFixed(1)
     : "0.0";
 
-  const totalPages = Math.ceil(filteredDetails.length / detailsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredDetails.length / detailsPerPage));
   const indexOfLast = currentPage * detailsPerPage;
   const indexOfFirst = indexOfLast - detailsPerPage;
   const currentDetails = filteredDetails.slice(indexOfFirst, indexOfLast);
@@ -107,6 +110,13 @@ const Details = () => {
         return item.imageUrl;
       }
       return `${backendBaseUrl}${item.imageUrl}`;
+    }
+
+    if (item.previewImageUrl) {
+      if (item.previewImageUrl.startsWith("http") || item.previewImageUrl.startsWith("data:")) {
+        return item.previewImageUrl;
+      }
+      return `${backendBaseUrl}${item.previewImageUrl}`;
     }
 
     if (item.image) {
@@ -184,15 +194,15 @@ const Details = () => {
       <div className="history-kpis">
         <article>
           <span>Total Records</span>
-          <strong>{filteredDetails.length}</strong>
+          <strong>{isLoading ? "--" : filteredDetails.length}</strong>
         </article>
         <article>
           <span>Damaged Records</span>
-          <strong>{totalDamaged}</strong>
+          <strong>{isLoading ? "--" : totalDamaged}</strong>
         </article>
         <article>
           <span>Average Confidence</span>
-          <strong>{avgConfidence}%</strong>
+          <strong>{isLoading ? "--" : `${avgConfidence}%`}</strong>
         </article>
       </div>
 
@@ -209,6 +219,16 @@ const Details = () => {
           </tr>
         </thead>
         <tbody>
+          {isLoading && (
+            <tr>
+              <td colSpan={7} className="loading-row">Loading scan history...</td>
+            </tr>
+          )}
+          {!isLoading && currentDetails.length === 0 && (
+            <tr>
+              <td colSpan={7} className="loading-row">No records found.</td>
+            </tr>
+          )}
           {currentDetails.map((item, idx) => (
             <tr key={idx}>
               <td>{item.id}</td>
@@ -270,8 +290,9 @@ const Details = () => {
             ‹
           </button>
           <span>
-            {indexOfFirst + 1} - {Math.min(indexOfLast, filteredDetails.length)}{" "}
-            of {filteredDetails.length}
+            {isLoading
+              ? "Loading..."
+              : `${filteredDetails.length === 0 ? 0 : indexOfFirst + 1} - ${Math.min(indexOfLast, filteredDetails.length)} of ${filteredDetails.length}`}
           </span>
           <button onClick={handleNext} disabled={currentPage === totalPages}>
             ›

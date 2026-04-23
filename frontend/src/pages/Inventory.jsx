@@ -29,6 +29,13 @@ const Inventory = () => {
       return `${backendBaseUrl}${item.imageUrl}`;
     }
 
+    if (item.previewImageUrl) {
+      if (item.previewImageUrl.startsWith("http") || item.previewImageUrl.startsWith("data:")) {
+        return item.previewImageUrl;
+      }
+      return `${backendBaseUrl}${item.previewImageUrl}`;
+    }
+
     const fallbackFolder = String(item.damageRisk).toLowerCase() === "high" ? "damaged" : "intact";
     const fallbackFile = fallbackFolder === "damaged" ? "damaged1.jpeg" : "intact1.jpeg";
     return `${backendBaseUrl}/dataset/${fallbackFolder}/${fallbackFile}`;

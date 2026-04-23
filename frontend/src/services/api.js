@@ -9,3 +9,9 @@ export const fetchDashboardStats = () =>
 export const fetchDetails = () => axios.get(`${backendBaseUrl}/details`);
 export const fetchInventory = () => axios.get(`${backendBaseUrl}/inventory`);
 export const checkBackendHealth = () => axios.get(`${backendBaseUrl}/health`);
+
+export const registerUser = (username, password) =>
+  axios.post(`${backendBaseUrl}/auth/register`, { username, password });
+
+export const loginUser = (username, password) =>
+  axios.post(`${backendBaseUrl}/auth/login`, { username, password });

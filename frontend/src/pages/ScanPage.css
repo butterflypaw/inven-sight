@@ -32,11 +32,81 @@
   color: #6b7280;
 }
 
+.mode-switch {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.mode-switch button {
+  border: 1px solid #cdd8ea;
+  background: #ffffff;
+  color: #1e293b;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-switch button.active {
+  background: linear-gradient(120deg, #0ea5a1 0%, #0284c7 100%);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.conveyor-config {
+  margin-top: 12px;
+  border: 1px solid #d8deea;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.conveyor-config h3 {
+  margin: 0 0 8px;
+}
+
+.conveyor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.conveyor-grid label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.86rem;
+  color: #475569;
+}
+
+.conveyor-grid input {
+  border: 1px solid #cdd8ea;
+  border-radius: 9px;
+  padding: 9px 10px;
+}
+
+.conveyor-actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.belt-state {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
 .scanner-panels {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin-top: 1.5rem;
+}
+
+.scanner-panels.conveyor-view {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .panel {
@@ -94,6 +164,12 @@
   border-radius: 10px;
   font-weight: bold;
   cursor: pointer;
+}
+
+.open-camera-btn:disabled,
+.secondary-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .upload-box {
@@ -362,6 +438,28 @@
   color: #f8fbff;
 }
 
+.layout.theme-dark .mode-switch button {
+  border-color: rgba(148, 163, 184, 0.2);
+  background: #12233b;
+  color: #dce8f9;
+}
+
+.layout.theme-dark .conveyor-config {
+  border-color: rgba(148, 163, 184, 0.2);
+  background: #101a2d;
+}
+
+.layout.theme-dark .conveyor-grid label,
+.layout.theme-dark .belt-state {
+  color: #c1d2e9;
+}
+
+.layout.theme-dark .conveyor-grid input {
+  border-color: rgba(148, 163, 184, 0.22);
+  background: #12233b;
+  color: #dce8f9;
+}
+
 .layout.theme-dark .scan-meta-grid input {
   border-color: rgba(148, 163, 184, 0.22);
   background: #12233b;
@@ -391,5 +489,9 @@
   .recent-scan-panel li {
     grid-template-columns: 1fr;
     align-items: flex-start;
+  }
+
+  .conveyor-grid {
+    grid-template-columns: 1fr;
   }
 }
