@@ -4,6 +4,7 @@ from flask import Flask, send_from_directory
 from flask_cors import CORS
 from routes.predict import predict_bp
 from routes.data_api import data_bp
+from routes.auth_api import auth_bp
 
 def create_app():
     app = Flask(__name__)
@@ -13,6 +14,7 @@ def create_app():
     CORS(app)  
     app.register_blueprint(predict_bp)
     app.register_blueprint(data_bp)
+    app.register_blueprint(auth_bp)
 
     @app.route("/uploads/<path:filename>")
     def serve_upload(filename):

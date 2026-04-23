@@ -32,6 +32,18 @@
   flex-wrap: wrap;
 }
 
+.alerts-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.outline-btn.tab-active {
+  border-color: #0284c7;
+  background: #e0f2fe;
+  color: #075985;
+}
+
 .outline-btn,
 .filled-btn,
 .ack-btn {
@@ -114,6 +126,10 @@
   text-align: center;
 }
 
+.alert-card.loading {
+  background: #f1f5f9;
+}
+
 .layout.theme-dark .alerts-page {
   background: var(--surface-elevated);
   border-color: var(--line);
@@ -137,6 +153,12 @@
   background: #13243b;
   color: #dce8f9;
   border-color: var(--line);
+}
+
+.layout.theme-dark .outline-btn.tab-active {
+  background: #0f3a56;
+  color: #b8e6ff;
+  border-color: #0ea5a1;
 }
 
 @media (max-width: 960px) {

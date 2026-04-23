@@ -2,7 +2,9 @@ import random
 import re
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 from pymongo import MongoClient
+from werkzeug.security import check_password_hash, generate_password_hash
 
 MONGO_URI = "mongodb://localhost:27017/"
 MONGO_DB_NAME = "invensight"
@@ -26,6 +28,7 @@ _mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
 _db = _mongo_client[MONGO_DB_NAME]
 _history_col = _db["scan_history"]
 _inventory_col = _db["inventory"]
+_users_col = _db["users"]
 
 DEFAULT_HISTORY = [
     {"id": 1, "productName": "BOX-0001", "sku": "BX-0001", "damage": "intact", "confidence": 96.2, "shippedFrom": "Warehouse A", "timestamp": "2026-04-22T06:01:00Z", "filename": "init1.jpg"},
@@ -100,6 +103,15 @@ def _normalize_inventory_row(row, index=1):
     clone["damageRisk"] = clone.get("damageRisk") or ("Low" if str(clone.get("damage", "intact")).lower() == "intact" else "High")
     clone.setdefault("status", clone.get("damage", "intact"))
     clone["warehouse"] = clone.get("warehouse") or clone.get("shippedFrom") or random.choice(WAREHOUSE_POOL)
+    scan_image = str(clone.get("imageUrl") or "").strip()
+    if scan_image:
+        clone["previewImageUrl"] = scan_image
+    else:
+        fallback = clone.get("previewImageUrl") or dataset_image_for_label(
+            "damaged" if str(clone.get("damageRisk", "")).lower() == "high" else "intact"
+        )
+        clone["previewImageUrl"] = fallback
+        clone["imageUrl"] = fallback
     return clone
 
 
@@ -131,6 +143,14 @@ def read_history():
         _mongo_client.admin.command("ping")
         _seed_collections_if_empty()
         rows = list(_history_col.find({}, {"_id": 0}).sort("id", 1))
+        for row in rows:
+            scan_image = str(row.get("imageUrl") or "").strip()
+            if scan_image:
+                row["previewImageUrl"] = scan_image
+            else:
+                fallback = row.get("previewImageUrl") or dataset_image_for_label(row.get("damage", "intact"))
+                row["previewImageUrl"] = fallback
+                row["imageUrl"] = fallback
         return _strip_mongo_id(rows)
     except Exception:
         seeded = []
@@ -181,6 +201,7 @@ def append_inventory(entry):
                     "confidence": entry.get("confidence", existing.get("confidence")),
                     "timestamp": entry.get("timestamp", existing.get("timestamp")),
                     "imageUrl": entry.get("imageUrl") or existing.get("imageUrl", ""),
+                    "previewImageUrl": entry.get("previewImageUrl") or existing.get("previewImageUrl") or dataset_image_for_label(entry.get("damage", "intact")),
                 }
             },
         )
@@ -199,6 +220,7 @@ def append_inventory(entry):
         "confidence": entry.get("confidence"),
         "timestamp": entry.get("timestamp"),
         "imageUrl": entry.get("imageUrl", ""),
+        "previewImageUrl": entry.get("previewImageUrl") or dataset_image_for_label(entry.get("damage", "intact")),
     }
     _inventory_col.insert_one(dict(inventory_entry))
 
@@ -208,7 +230,27 @@ def append_history(entry):
     _history_col.insert_one(dict(entry))
 
 
-def make_entry(label, confidence, filename, image_url="", product_name="", sku="", location=""):
+def has_recent_duplicate(image_hash: str, within_seconds: int = 20) -> bool:
+    if not image_hash:
+        return False
+
+    _mongo_client.admin.command("ping")
+    row = _history_col.find_one({"imageHash": image_hash}, sort=[("id", -1)])
+    if not row:
+        return False
+
+    ts = row.get("timestamp", "")
+    try:
+        last_time = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+    except Exception:
+        return True
+
+    now = datetime.utcnow().replace(tzinfo=last_time.tzinfo)
+    age = (now - last_time).total_seconds()
+    return age <= within_seconds
+
+
+def make_entry(label, confidence, filename, image_url="", product_name="", sku="", location="", image_hash: Optional[str] = None):
     now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
     rows = read_history()
     next_id = (rows[-1].get("id", 0) + 1) if rows else 1
@@ -225,4 +267,45 @@ def make_entry(label, confidence, filename, image_url="", product_name="", sku="
         "timestamp": now,
         "filename": filename or "capture.jpg",
         "imageUrl": image_url,
+        "previewImageUrl": image_url,
+        "imageHash": image_hash or "",
+    }
+
+
+def create_user(username, password):
+    _mongo_client.admin.command("ping")
+    normalized_username = str(username or "").strip().lower()
+    if not normalized_username:
+        raise ValueError("Username is required")
+    if len(str(password or "")) < 6:
+        raise ValueError("Password must be at least 6 characters")
+
+    existing = _users_col.find_one({"username": normalized_username})
+    if existing:
+        raise ValueError("Username already exists")
+
+    now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    _users_col.insert_one(
+        {
+            "username": normalized_username,
+            "passwordHash": generate_password_hash(password),
+            "createdAt": now,
+        }
+    )
+    return {"username": normalized_username, "createdAt": now}
+
+
+def authenticate_user(username, password):
+    _mongo_client.admin.command("ping")
+    normalized_username = str(username or "").strip().lower()
+    account = _users_col.find_one({"username": normalized_username})
+    if not account:
+        return None
+
+    if not check_password_hash(account.get("passwordHash", ""), str(password or "")):
+        return None
+
+    return {
+        "username": account.get("username"),
+        "createdAt": account.get("createdAt"),
     }

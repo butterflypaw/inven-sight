@@ -8,7 +8,7 @@ import {
   FaBarcode,
   FaBoxes,
   FaBell,
-  FaSearch,
+  FaHistory,
   FaMoon,
   FaSun,
   FaBars,
@@ -16,7 +16,7 @@ import {
 } from "react-icons/fa";
 import invensightLogo from "../assets/invensight-logo.svg";
 
-const Layout = ({ children }) => {
+const Layout = ({ children, onLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState(() => {
     if (typeof window === "undefined") {
@@ -50,9 +50,17 @@ const Layout = ({ children }) => {
   return (
     <div className={`layout ${theme === "dark" ? "theme-dark" : "theme-light"}`}>
       <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
-        <div className="brand">
+        <button
+          type="button"
+          className="brand brand-btn"
+          onClick={() => {
+            navigate("/");
+            setMenuOpen(false);
+          }}
+          aria-label="Go to dashboard"
+        >
           <img src={invensightLogo} alt="InvenSight Logo" className="logo" />
-        </div>
+        </button>
 
         <nav>
           <NavLink to="/" end className={navLinkClass} onClick={() => setMenuOpen(false)}>
@@ -67,8 +75,12 @@ const Layout = ({ children }) => {
             <FaBoxes className="icon" />
             Inventory
           </NavLink>
-          <NavLink to="/details" className={navLinkClass} onClick={() => setMenuOpen(false)}>
+          <NavLink to="/alerts" className={navLinkClass} onClick={() => setMenuOpen(false)}>
             <FaBell className="icon" />
+            Alerts
+          </NavLink>
+          <NavLink to="/details" className={navLinkClass} onClick={() => setMenuOpen(false)}>
+            <FaHistory className="icon" />
             Scan History
           </NavLink>
         </nav>
@@ -92,11 +104,6 @@ const Layout = ({ children }) => {
             </div>
           </div>
 
-          <div className="search">
-            <FaSearch className="search-icon" />
-            <input placeholder="Search SKU or Item ID..." />
-          </div>
-
           <div className="top-actions">
             <button
               className="theme-btn"
@@ -106,7 +113,9 @@ const Layout = ({ children }) => {
             >
               {theme === "light" ? <FaMoon /> : <FaSun />}
             </button>
-            <button className="alert-btn" onClick={() => navigate("/alerts")}>Alerts</button>
+            {onLogout && (
+              <button className="logout-btn" onClick={onLogout}>Logout</button>
+            )}
           </div>
         </div>
         {children}

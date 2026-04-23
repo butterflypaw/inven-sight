@@ -1,151 +1,165 @@
-import json
-import os
-from pathlib import Path
+import tensorflow as tf
+import numpy as np
+import cv2
+
+IMG_SIZE = (256, 256)
+CLASS_NAMES = ['intact', 'damaged']
+MODEL_PATH = "model/model.h5"
+
+model = tf.keras.models.load_model(MODEL_PATH)
+human_detector = None
+face_detector = None
+
+PACKAGE_KEYWORDS = {
+    "carton",
+    "crate",
+    "packet",
+    "envelope",
+    "parcel",
+    "package",
+    "box",
+}
+
+HUMAN_KEYWORDS = {
+    "person",
+    "face",
+    "head",
+    "beard",
+    "wig",
+    "hair",
+    "mask",
+    "sunglass",
+    "lip",
+    "nose",
+    "eye",
+}
 
 try:
-    import tensorflow as tf
-    from tensorflow.keras.preprocessing.image import img_to_array
-    TF_AVAILABLE = True
-except Exception as err:
-    tf = None
-    img_to_array = None
-    TF_AVAILABLE = False
-    print("TensorFlow import failed:", str(err))
+    human_detector = tf.keras.applications.MobileNetV2(weights="imagenet")
+except Exception as exc:
+    # Human guard is optional; prediction still works if ImageNet weights cannot be loaded.
+    print("Human detector unavailable:", str(exc))
 
-DEFAULT_CLASS_NAMES = ["damaged", "intact"]
-MODEL_DIR = Path(__file__).resolve().parent
-METADATA_PATH = MODEL_DIR / "training_metadata.json"
-
-MODEL_PATH_CANDIDATES = [
-    os.getenv("MODEL_PATH"),
-    str(MODEL_DIR / "model_best.keras"),
-    str(MODEL_DIR / "model_final.h5"),
-    str(MODEL_DIR / "model_best.h5"),
-    str(MODEL_DIR / "resnet34_model.h5"),
-]
-
-model = None
-model_input_size = (256, 256)
-class_names = DEFAULT_CLASS_NAMES
-use_external_normalization = True
-
-
-def _load_metadata():
-    global class_names
-
-    if not METADATA_PATH.exists():
-        return
-
-    try:
-        with open(METADATA_PATH, "r", encoding="utf-8") as f:
-            metadata = json.load(f)
-        loaded_classes = metadata.get("class_names")
-        if isinstance(loaded_classes, list) and len(loaded_classes) >= 2:
-            class_names = loaded_classes
-    except Exception as err:
-        print("Failed to parse metadata:", str(err))
-
-
-def _infer_input_size(loaded_model):
-    shape = loaded_model.input_shape
-    if isinstance(shape, list):
-        shape = shape[0]
-    if isinstance(shape, tuple) and len(shape) >= 3:
-        h, w = shape[1], shape[2]
-        if isinstance(h, int) and isinstance(w, int):
-            return (w, h)
-    return (256, 256)
-
-
-def _should_normalize_outside_model(loaded_model):
-    if not loaded_model.layers:
-        return True
-    first_layer = loaded_model.layers[0].__class__.__name__.lower()
-    return first_layer != "rescaling"
-
-
-def _load_model_once():
-    global model, model_input_size, use_external_normalization
-
-    if model is not None:
-        return
-
-    if not TF_AVAILABLE:
-        return
-
-    _load_metadata()
-
-    resolved_path = None
-    for candidate in MODEL_PATH_CANDIDATES:
-        if candidate and Path(candidate).exists():
-            resolved_path = candidate
-            break
-
-    if not resolved_path:
-        print("No model file found. Train a model and place it in backend/model.")
-        return
-
-    model = tf.keras.models.load_model(resolved_path)
-    model_input_size = _infer_input_size(model)
-    use_external_normalization = _should_normalize_outside_model(model)
-    print("Loaded model:", resolved_path)
-    print("Inference size:", model_input_size)
-    print("Classes:", class_names)
-
+try:
+    face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    if face_detector.empty():
+        face_detector = None
+except Exception as exc:
+    print("Face detector unavailable:", str(exc))
 
 def preprocess_image(image):
-    if not TF_AVAILABLE:
-        raise RuntimeError("TensorFlow is not installed in this Python environment.")
-
-    image = image.resize(model_input_size)
-    image = img_to_array(image)
+    image = image.resize(IMG_SIZE)
+    image = tf.keras.preprocessing.image.img_to_array(image)
     image = tf.convert_to_tensor(image, dtype=tf.float32)
-    image = tf.expand_dims(image, axis=0)
-    if use_external_normalization:
-        image = image / 255.0
+    image = tf.expand_dims(image, axis=0)  
+    image = image / 255.0                  
     return image
 
 
-def _parse_prediction(prediction):
-    if isinstance(prediction, (list, tuple)):
-        flat = list(prediction)
-    else:
-        flat = [float(prediction)] if prediction is not None else []
+def _decode_scene(pil_image, top=5):
+    if human_detector is None:
+        return []
 
-    if len(flat) == 1:
-        prob_intact = float(flat[0])
-        prob_intact = min(max(prob_intact, 0.0), 1.0)
-        label = class_names[1] if prob_intact >= 0.5 else class_names[0]
-        confidence = prob_intact if prob_intact >= 0.5 else 1.0 - prob_intact
-        return label, confidence
-
-    label_index = max(range(len(flat)), key=lambda idx: flat[idx]) if flat else 0
-    confidence = float(flat[label_index]) if flat else 0.0
-    if label_index < len(class_names):
-        label = class_names[label_index]
-    else:
-        label = str(label_index)
-    return label, confidence
+    resized = pil_image.resize((224, 224))
+    arr = tf.keras.preprocessing.image.img_to_array(resized)
+    arr = np.expand_dims(arr, axis=0)
+    arr = tf.keras.applications.mobilenet_v2.preprocess_input(arr)
+    preds = human_detector.predict(arr, verbose=0)
+    return tf.keras.applications.mobilenet_v2.decode_predictions(preds, top=top)[0]
 
 
+def detect_human(decoded_scene):
+    if not decoded_scene:
+        return False, 0.0
+
+    top_human = 0.0
+    for _, class_name, score in decoded_scene:
+        lowered = class_name.lower()
+        if any(keyword in lowered for keyword in HUMAN_KEYWORDS):
+            top_human = max(top_human, float(score))
+    return top_human >= 0.18, top_human
+
+
+def detect_non_package(decoded_scene):
+    # Strict gate: run model.h5 only when scene pre-check looks like package/box.
+    if not decoded_scene:
+        return True, 0.0, "unknown"
+
+    package_candidates = []
+    for _, class_name, score in decoded_scene:
+        lowered = class_name.lower()
+        if any(keyword in lowered for keyword in PACKAGE_KEYWORDS):
+            package_candidates.append((class_name, float(score)))
+
+    if not package_candidates:
+        best_name = decoded_scene[0][1]
+        best_score = float(decoded_scene[0][2])
+        return True, best_score, best_name
+
+    best_package_name, best_package_score = max(package_candidates, key=lambda item: item[1])
+    if best_package_score < 0.08:
+        return True, best_package_score, best_package_name
+
+    return False, best_package_score, best_package_name
+
+
+def detect_face(pil_image):
+    if face_detector is None:
+        return False, 0
+
+    rgb_array = np.array(pil_image)
+    if rgb_array.size == 0:
+        return False, 0
+
+    gray = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2GRAY)
+    faces = face_detector.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(40, 40),
+    )
+    return len(faces) > 0, len(faces)
+    
 def predict(pil_image):
     try:
-        if not TF_AVAILABLE:
+        has_face, face_count = detect_face(pil_image)
+        if has_face:
             return {
-                "error": "TensorFlow is not installed. Install backend requirements and retrain or load a model.",
+                "label": "human",
+                "confidence": 1.0 if face_count else 0.0,
+                "rejected_input": True,
+                "message": "This is not a package or box. Human/face detected.",
             }
 
-        _load_model_once()
-        if model is None:
+        decoded_scene = _decode_scene(pil_image)
+
+        is_human, human_score = detect_human(decoded_scene)
+        if is_human:
             return {
-                "error": "Model is not available. Run training first and place the model file in backend/model.",
+                "label": "human",
+                "confidence": round(human_score, 4),
+                "rejected_input": True,
+                "message": "This is not a package or box. Human/face detected.",
+            }
+
+        is_non_package, non_package_score, detected_label = detect_non_package(decoded_scene)
+        if is_non_package:
+            return {
+                "label": "not_package",
+                "confidence": round(non_package_score, 4),
+                "rejected_input": True,
+                "message": f"This is not a package or box ({detected_label}). Please scan only packaged boxes.",
             }
 
         processed = preprocess_image(pil_image)
-        raw = model.predict(processed, verbose=0)
-        label, confidence = _parse_prediction(raw[0])
+        prediction = model.predict(processed, verbose=0)[0]
+        print("Raw model output:", prediction.tolist())
 
-        return {"label": label, "confidence": round(float(confidence), 4)}
-    except Exception as err:
-        print("Prediction error:", str(err))
-        return {"error": str(err)}
+        label_index = np.argmax(prediction)
+        label = CLASS_NAMES[label_index]
+        confidence = float(np.max(prediction))
+
+        return {"label": label, "confidence": round(confidence, 4)}
+    except Exception as e:
+        print("Prediction error:", str(e))
+        return {"error": str(e)}

@@ -115,6 +115,14 @@
     color: #0f172a;
 }
 
+.stat-card.is-loading p {
+    color: #94a3b8;
+}
+
+.stat-card.is-loading .card-chart {
+    opacity: 0.55;
+}
+
 .card-chart {
     margin-top: 8px;
 }
