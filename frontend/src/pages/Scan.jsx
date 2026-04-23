@@ -48,14 +48,24 @@ const Scan = () => {
     [backendRoots]
   );
 
+  const [countdown, setCountdown] = useState(0);
+  const [framesCaptured, setFramesCaptured] = useState(0);
+
   const frameLoopRef = useRef(null);
   const windowTimerRef = useRef(null);
   const cooldownTimerRef = useRef(null);
+  const countdownIntervalRef = useRef(null);
   const predictingRef = useRef(false);
   const windowClosedRef = useRef(false);
   const damageDetectedRef = useRef(false);
   const damagedStreakRef = useRef(0);
   const lastFrameBlobRef = useRef(null);
+  // Function refs — updated every render so timer/interval callbacks always
+  // call the latest version without stale-closure issues in circular deps.
+  const startWindowFnRef = useRef(null);
+  const closeWindowFnRef = useRef(null);
+  // Mirrors beltRunning state so async callbacks read the live value.
+  const beltRunningRef = useRef(false);
 
   const confidencePercent = useMemo(() => {
     if (confidence == null) return null;
@@ -200,6 +210,10 @@ const Scan = () => {
       window.clearTimeout(cooldownTimerRef.current);
       cooldownTimerRef.current = null;
     }
+    if (countdownIntervalRef.current) {
+      window.clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
   }, []);
 
   const closeWindow = useCallback(async (trigger, frameBlob) => {
@@ -215,25 +229,57 @@ const Scan = () => {
       window.clearTimeout(windowTimerRef.current);
       windowTimerRef.current = null;
     }
+    if (countdownIntervalRef.current) {
+      window.clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdown(0);
 
     const targetBlob = frameBlob || lastFrameBlobRef.current;
+    lastFrameBlobRef.current = null;
     if (targetBlob) {
       await finalizeProductScan(targetBlob, trigger === "damage" ? "belt-damaged.jpg" : "belt-intact.jpg");
+    } else {
+      console.warn("closeWindow: no frame captured this window — product not logged.");
     }
 
+    // Read live value via ref so async callback isn't affected by stale closure.
+    if (!beltRunningRef.current) {
+      setBeltState("IDLE");
+      return;
+    }
+
+    const cooldownDuration = Math.max(300, Number(cooldownMs) || 1500);
     setBeltState("COOLDOWN");
+
+    // Cooldown countdown ticker.
+    setCountdown(Math.ceil(cooldownDuration / 1000));
+    const cooldownStart = Date.now();
+    countdownIntervalRef.current = window.setInterval(() => {
+      const remaining = Math.max(0, cooldownDuration - (Date.now() - cooldownStart));
+      setCountdown(Math.ceil(remaining / 1000));
+    }, 200);
+
     cooldownTimerRef.current = window.setTimeout(() => {
-      if (!beltRunning) {
+      if (countdownIntervalRef.current) {
+        window.clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+      setCountdown(0);
+      if (!beltRunningRef.current) {
         setBeltState("IDLE");
         return;
       }
       damageDetectedRef.current = false;
       damagedStreakRef.current = 0;
       windowClosedRef.current = false;
+      setFramesCaptured(0);
       setBeltState("SCANNING");
-      startWindow();
-    }, Math.max(300, Number(cooldownMs) || 1500));
-  }, [beltRunning, cooldownMs, finalizeProductScan]);
+      // Call via ref so the cooldown timer always invokes the latest startWindow.
+      startWindowFnRef.current?.();
+    }, cooldownDuration);
+  }, [cooldownMs, finalizeProductScan]);
+  closeWindowFnRef.current = closeWindow;
 
   const captureCurrentFrameBlob = useCallback(async () => {
     const imageSrc = webcamRef.current?.getScreenshot();
@@ -250,9 +296,19 @@ const Scan = () => {
     damagedStreakRef.current = 0;
     windowClosedRef.current = false;
     predictingRef.current = false;
+    setFramesCaptured(0);
+    setErrorMessage("");
 
     const interval = Math.max(200, Number(frameIntervalMs) || 500);
     const duration = Math.max(interval, Number(windowDuration) || 5000);
+
+    // Countdown ticker — visual only, no effect on scan logic.
+    setCountdown(Math.ceil(duration / 1000));
+    const countdownStart = Date.now();
+    countdownIntervalRef.current = window.setInterval(() => {
+      const remaining = Math.max(0, duration - (Date.now() - countdownStart));
+      setCountdown(Math.ceil(remaining / 1000));
+    }, 200);
 
     frameLoopRef.current = window.setInterval(async () => {
       if (predictingRef.current || windowClosedRef.current) {
@@ -266,8 +322,16 @@ const Scan = () => {
           return;
         }
         lastFrameBlobRef.current = blob;
+        setFramesCaptured((n) => n + 1);
         const probeFile = new File([blob], "belt-frame.jpg", { type: "image/jpeg" });
         const frameResult = await sendToEndpoint(probeFile, framePredictCandidates);
+
+        if (frameResult?.rejected_input) {
+          setErrorMessage(frameResult?.message || "Non-package detected in frame — scanning continues.");
+          damagedStreakRef.current = 0;
+          return;
+        }
+
         const label = String(frameResult?.label || "").toLowerCase();
         const conf = Number(frameResult?.confidence || 0);
 
@@ -279,10 +343,11 @@ const Scan = () => {
 
         if (!damageDetectedRef.current && damagedStreakRef.current >= 2) {
           damageDetectedRef.current = true;
-          await closeWindow("damage", blob);
+          // Call via ref — avoids closeWindow being stale in this callback.
+          await closeWindowFnRef.current?.("damage", blob);
         }
       } catch {
-        // Ignore one frame failures and continue scanning.
+        // Ignore one-frame failures and continue scanning.
       } finally {
         predictingRef.current = false;
       }
@@ -292,9 +357,11 @@ const Scan = () => {
       if (windowClosedRef.current) {
         return;
       }
-      await closeWindow("intact", lastFrameBlobRef.current);
+      await closeWindowFnRef.current?.("intact", lastFrameBlobRef.current);
     }, duration);
-  }, [captureCurrentFrameBlob, closeWindow, frameIntervalMs, framePredictCandidates, minConfidence, sendToEndpoint, windowDuration]);
+  }, [captureCurrentFrameBlob, frameIntervalMs, framePredictCandidates, minConfidence, sendToEndpoint, windowDuration]);
+  // closeWindow removed from deps — called via closeWindowFnRef to break circular dep.
+  startWindowFnRef.current = startWindow;
 
   const stopCamera = useCallback(() => {
     const stream = webcamRef.current?.video?.srcObject;
@@ -314,6 +381,10 @@ const Scan = () => {
       }
     };
   }, [clearConveyorTimers, stopCamera]);
+
+  useEffect(() => {
+    beltRunningRef.current = beltRunning;
+  }, [beltRunning]);
 
   useEffect(() => {
     // Reset transient UI state when opening this page from any route.
@@ -344,9 +415,10 @@ const Scan = () => {
   useEffect(() => {
     if (scanMode === "conveyor" && beltRunning && cameraOn) {
       clearConveyorTimers();
-      startWindow();
+      // Call via ref — config changes recreate startWindow but must not re-trigger this effect.
+      startWindowFnRef.current?.();
     }
-  }, [beltRunning, cameraOn, clearConveyorTimers, scanMode, startWindow]);
+  }, [beltRunning, cameraOn, clearConveyorTimers, scanMode]);
 
   const startBeltScan = async () => {
     if (beltRunning) {
@@ -364,6 +436,14 @@ const Scan = () => {
     setBeltState("IDLE");
     clearConveyorTimers();
     stopCamera();
+    // Reset all mutation refs so a fresh Start is clean.
+    damageDetectedRef.current = false;
+    windowClosedRef.current = false;
+    predictingRef.current = false;
+    lastFrameBlobRef.current = null;
+    damagedStreakRef.current = 0;
+    setCountdown(0);
+    setFramesCaptured(0);
   };
 
   const copyResult = async () => {
@@ -510,6 +590,16 @@ const Scan = () => {
               <button type="button" className="open-camera-btn" onClick={startBeltScan} disabled={loading}>Start Belt Scan</button>
             )}
             <span className="belt-state">State: {beltState}</span>
+            {beltState === "SCANNING" && (
+              <span className="belt-state">
+                {countdown}s remaining &middot; {framesCaptured} frame{framesCaptured !== 1 ? "s" : ""}
+              </span>
+            )}
+            {beltState === "COOLDOWN" && countdown > 0 && (
+              <span className="belt-state">
+                Next product in {countdown}s
+              </span>
+            )}
           </div>
         </section>
       )}
