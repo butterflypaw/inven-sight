@@ -18,8 +18,7 @@ const Scan = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [copied, setCopied] = useState(false);
-  const [activeEndpoint, setActiveEndpoint] = useState("");
-  const [scanMode, setScanMode] = useState("manual");
+  const [scanMode, setScanMode] = useState("conveyor");
   const [beltRunning, setBeltRunning] = useState(false);
   const [beltState, setBeltState] = useState("IDLE");
   const [windowDuration, setWindowDuration] = useState(5000);
@@ -81,6 +80,7 @@ const Scan = () => {
   }, [confidencePercent]);
 
   const playAlertSound = useCallback(() => {
+    if (window.localStorage.getItem("invensight-mute-alerts") === "true") return;
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) {
       return;
@@ -132,7 +132,6 @@ const Scan = () => {
         }
 
         if (response.status === 422 && data?.rejected_input) {
-          setActiveEndpoint(endpoint.replace("/predict", "").replace("/predict-frame", ""));
           return data;
         }
 
@@ -141,7 +140,6 @@ const Scan = () => {
           continue;
         }
 
-        setActiveEndpoint(endpoint.replace("/predict", "").replace("/predict-frame", ""));
         return data;
       } catch (error) {
         lastError = error?.name === "AbortError" ? "Request timed out" : "Could not reach backend";
@@ -545,6 +543,13 @@ const Scan = () => {
       <div className="mode-switch">
         <button
           type="button"
+          className={scanMode === "conveyor" ? "active" : ""}
+          onClick={() => setScanMode("conveyor")}
+        >
+          Conveyor Scan
+        </button>
+        <button
+          type="button"
           className={scanMode === "manual" ? "active" : ""}
           onClick={() => {
             stopBeltScan();
@@ -552,13 +557,6 @@ const Scan = () => {
           }}
         >
           Manual Scan
-        </button>
-        <button
-          type="button"
-          className={scanMode === "conveyor" ? "active" : ""}
-          onClick={() => setScanMode("conveyor")}
-        >
-          Conveyor Scan
         </button>
       </div>
 
@@ -644,15 +642,17 @@ const Scan = () => {
               <FaUpload className="icon" /> Upload Image
             </div>
             <div className="upload-box">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="file-input"
-                disabled={loading}
-                ref={fileInputRef} // attach ref
-              />
-              <label className="upload-hint">Drag an image here or click to browse</label>
+              <div className="upload-zone">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="file-input"
+                  disabled={loading}
+                  ref={fileInputRef}
+                />
+                <label className="upload-hint">Click to browse or drag an image here</label>
+              </div>
               {imageFile && (
                 <p className="file-name">Selected: {imageFile.name}</p>
               )}
@@ -733,9 +733,9 @@ const Scan = () => {
         <strong>Note:</strong> You can find all{" "}
         <span className="highlight-text">damaged items</span> in the{" "}
         <Link to="/details" className="alert-link">
-          Details Page
+          Scan History
         </Link>
-        . {activeEndpoint ? `Live backend: ${activeEndpoint}` : ""}
+        .
       </div>
     </div>
   );

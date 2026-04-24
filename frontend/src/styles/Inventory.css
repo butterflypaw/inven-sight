@@ -223,6 +223,20 @@
   color: #991b1b;
 }
 
+.item-link {
+  color: #0284c7;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.item-link:hover {
+  text-decoration: underline;
+}
+
+.layout.theme-dark .item-link {
+  color: #7dd3fc;
+}
+
 @media (max-width: 900px) {
   .inventory-kpis {
     grid-template-columns: 1fr;
