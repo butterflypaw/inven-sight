@@ -5,6 +5,7 @@ import DamagedLineChart from "../components/DamagedLineChart";
 import { fetchDashboardStats, fetchDetails } from "../services/api";
 import { FaArrowTrendDown, FaArrowTrendUp, FaShieldHalved } from "react-icons/fa6";
 import ConfidenceHistogram from "../components/ConfidenceHistogram";
+import DamageHeatmap from "../components/DamageHeatmap";
 import HourlyScansChart from "../components/HourlyScansChart";
 
 const Dashboard = () => {
@@ -219,6 +220,11 @@ const Dashboard = () => {
             <p>{aiSuggestionText}</p>
           </div>
         </div>
+      </div>
+
+      <div className="dashboard-section" style={{ padding: "15px 0 0 0" }}>
+        <h2>Daily Damage Heatmap</h2>
+        <DamageHeatmap records={alerts} />
       </div>
 
       <div className="dashboard-section">
