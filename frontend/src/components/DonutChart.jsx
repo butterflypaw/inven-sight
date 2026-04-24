@@ -1,9 +1,20 @@
 // components/DonutChart.jsx
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { PieChart } from '@mui/x-charts/PieChart';
 
 const DonutChart = ({ damaged, intact }) => {
-  const isDark = typeof document !== "undefined" && document.documentElement.dataset.theme === "dark";
+  const [isDark, setIsDark] = useState(
+    typeof document !== "undefined" && document.documentElement.dataset.theme === "dark"
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.dataset.theme === "dark");
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
   const labelColor = isDark ? "#dce8f9" : "#1f2937";
 
   const data = [

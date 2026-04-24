@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import "../styles/Inventory.css";
 import { FaDownload, FaEye } from "react-icons/fa";
 import { backendBaseUrl, fetchInventory } from "../services/api";
@@ -168,7 +169,14 @@ const Inventory = () => {
                     </button>
                   </td>
                   <td>{item.sku}</td>
-                  <td>{item.itemId || item.productName || "-"}</td>
+                  <td>
+                    <Link
+                      to={`/details?itemId=${encodeURIComponent(item.itemId || item.productName || "")}`}
+                      className="item-link"
+                    >
+                      {item.itemId || item.productName || "-"}
+                    </Link>
+                  </td>
                   <td>{item.warehouse}</td>
                   <td>
                     <span className={`availability-chip ${availabilityClass}`}>{quantity}</span>

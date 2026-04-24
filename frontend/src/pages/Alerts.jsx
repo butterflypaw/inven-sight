@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { FaVolumeHigh, FaVolumeXmark } from "react-icons/fa6";
 import { fetchDetails } from "../services/api";
 import "../styles/Alerts.css";
 
 const Alerts = () => {
   const [showOnlyCritical, setShowOnlyCritical] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
+  const [muted, setMuted] = useState(() => window.localStorage.getItem("invensight-mute-alerts") === "true");
   const [records, setRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const seenAlertIdsRef = useRef(new Set());
@@ -44,7 +46,19 @@ const Alerts = () => {
     return mappedAlerts.filter((alert) => acknowledged.includes(alert.id) && !resolved.includes(alert.id));
   }, [acknowledged, mappedAlerts, resolved]);
 
-  const displayedAlerts = activeTab === "acknowledged" ? acknowledgedAlerts : visibleAlerts;
+  const resolvedAlerts = useMemo(() => {
+    return mappedAlerts.filter((alert) => resolved.includes(alert.id));
+  }, [mappedAlerts, resolved]);
+
+  const displayedAlerts =
+    activeTab === "acknowledged" ? acknowledgedAlerts :
+    activeTab === "resolved" ? resolvedAlerts :
+    visibleAlerts;
+
+  useEffect(() => {
+    window.localStorage.setItem("invensight-active-alert-count", String(visibleAlerts.length));
+    window.dispatchEvent(new CustomEvent("invensight-alert-count-change", { detail: visibleAlerts.length }));
+  }, [visibleAlerts.length]);
 
   useEffect(() => {
     if (isLoading || visibleAlerts.length === 0) {
@@ -58,6 +72,8 @@ const Alerts = () => {
     if (newIds.length === 0) {
       return;
     }
+
+    if (muted) return;
 
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) {
@@ -80,7 +96,7 @@ const Alerts = () => {
       oscillator.stop();
       context.close().catch(() => {});
     }, 260);
-  }, [isLoading, visibleAlerts]);
+  }, [isLoading, muted, visibleAlerts]);
 
   useEffect(() => {
     const load = async () => {
@@ -109,11 +125,20 @@ const Alerts = () => {
     });
   };
 
-  const resetAlerts = () => {
-    setAcknowledged([]);
-    setResolved([]);
-    window.localStorage.removeItem("acknowledgedAlerts");
-    window.localStorage.removeItem("resolvedAlerts");
+  const toggleMute = () => {
+    setMuted((prev) => {
+      const next = !prev;
+      window.localStorage.setItem("invensight-mute-alerts", String(next));
+      return next;
+    });
+  };
+
+  const unacknowledge = (id) => {
+    setAcknowledged((prev) => {
+      const next = prev.filter((entryId) => entryId !== id);
+      window.localStorage.setItem("acknowledgedAlerts", JSON.stringify(next));
+      return next;
+    });
   };
 
   const resolveAlert = (id) => {
@@ -154,11 +179,27 @@ const Alerts = () => {
             >
               Acknowledged ({acknowledgedAlerts.length})
             </button>
+            <button
+              className={`outline-btn ${activeTab === "resolved" ? "tab-active" : ""}`}
+              role="tab"
+              aria-selected={activeTab === "resolved"}
+              onClick={() => setActiveTab("resolved")}
+            >
+              Resolved ({resolvedAlerts.length})
+            </button>
           </div>
-          <button className="outline-btn" onClick={() => setShowOnlyCritical((prev) => !prev)}>
-            {showOnlyCritical ? "Show All" : "Critical Only"}
+          <select
+            className="filter-select"
+            value={showOnlyCritical ? "critical" : "all"}
+            onChange={(e) => setShowOnlyCritical(e.target.value === "critical")}
+            aria-label="Severity filter"
+          >
+            <option value="all">Show All</option>
+            <option value="critical">Critical Only</option>
+          </select>
+          <button className="outline-btn mute-btn" onClick={toggleMute} aria-label={muted ? "Unmute alerts" : "Mute alerts"} title={muted ? "Unmute alerts" : "Mute alerts"}>
+            {muted ? <FaVolumeXmark /> : <FaVolumeHigh />}
           </button>
-          <button className="outline-btn" onClick={resetAlerts}>Reset</button>
           <Link to="/details" className="filled-btn">Open Full History</Link>
         </div>
       </div>
@@ -173,11 +214,17 @@ const Alerts = () => {
 
         {!isLoading && displayedAlerts.length === 0 && (
           <article className="alert-card empty">
-            <h3>{activeTab === "acknowledged" ? "No acknowledged alerts" : "No active alerts"}</h3>
+            <h3>
+              {activeTab === "acknowledged" ? "No acknowledged alerts" :
+               activeTab === "resolved" ? "No resolved alerts" :
+               "No active alerts"}
+            </h3>
             <p>
               {activeTab === "acknowledged"
-                ? "Acknowledge an alert first, then resolve it from this tab."
-                : "Everything currently acknowledged. Monitor scan stream for new incidents."}
+                ? "Acknowledge an active alert to move it here."
+                : activeTab === "resolved"
+                ? "Resolved alerts will appear here after you resolve them from the Acknowledged tab."
+                : "Everything looks clear. Monitor the scan stream for new incidents."}
             </p>
           </article>
         )}
@@ -187,7 +234,9 @@ const Alerts = () => {
             <div className="alert-top">
               <strong>{alert.id}</strong>
               <span className={`severity ${alert.severity}`}>
-                {activeTab === "acknowledged" ? "ACKNOWLEDGED" : alert.severity.toUpperCase()}
+                {activeTab === "acknowledged" ? "ACKNOWLEDGED" :
+                 activeTab === "resolved" ? "RESOLVED" :
+                 alert.severity.toUpperCase()}
               </span>
             </div>
             <h3>{alert.itemId}</h3>
@@ -195,10 +244,17 @@ const Alerts = () => {
             <p>Zone: {alert.zone}</p>
             <p>Confidence: {alert.confidence}%</p>
             <p>Detected: {alert.at}</p>
-            {activeTab === "acknowledged" ? (
-              <button className="ack-btn" onClick={() => resolveAlert(alert.id)}>Resolve Alert</button>
-            ) : (
+            {activeTab === "active" && (
               <button className="ack-btn" onClick={() => acknowledge(alert.id)}>Acknowledge</button>
+            )}
+            {activeTab === "acknowledged" && (
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <button className="ack-btn" onClick={() => resolveAlert(alert.id)}>Resolve</button>
+                <button className="ack-btn" onClick={() => unacknowledge(alert.id)}>Move to Active</button>
+              </div>
+            )}
+            {activeTab === "resolved" && (
+              <span style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 6, display: "block" }}>Resolved</span>
             )}
           </article>
         ))}

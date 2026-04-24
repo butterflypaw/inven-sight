@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import "./../styles/details.css";
 import DetailModal from "../components/DetailModal";
 import { backendBaseUrl, fetchDetails } from "../services/api";
 import { FaEye } from "react-icons/fa";
 
 const Details = () => {
+  const location = useLocation();
   const [details, setDetails] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -16,6 +18,13 @@ const Details = () => {
   const [confidenceFilter, setConfidenceFilter] = useState("all");
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [sortBy, setSortBy] = useState("latest");
+  const [dateRange, setDateRange] = useState("all");
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const itemIdParam = params.get("itemId");
+    if (itemIdParam) setSearch(itemIdParam);
+  }, [location.search]);
 
   useEffect(() => {
     const loadDetails = async () => {
@@ -37,6 +46,21 @@ const Details = () => {
   }, []);
 
   const filteredDetails = details
+    .filter((detail) => {
+      if (dateRange === "all") return true;
+      const ts = new Date(detail.timestamp);
+      if (isNaN(ts.getTime())) return false;
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      if (dateRange === "today") return ts >= startOfToday;
+      if (dateRange === "7days") {
+        const d = new Date(startOfToday); d.setDate(d.getDate() - 6); return ts >= d;
+      }
+      if (dateRange === "30days") {
+        const d = new Date(startOfToday); d.setDate(d.getDate() - 29); return ts >= d;
+      }
+      return true;
+    })
     .filter((detail) =>
       String(detail.itemId || detail.productName || "")
         .toLowerCase()
@@ -160,35 +184,43 @@ const Details = () => {
     <div className="details-wrapper">
       <div className="top-bar">
         <h1 className="page-title">Scan History</h1>
-        <input
-          type="text"
-          placeholder="Search Item ID"
-          className="search-input"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button
-          className="btn btn-green"
-          onClick={() => setShowFilterModal(true)}
-        >
-          Filters
-        </button>
-        <button className="btn btn-gray" onClick={handleClearFilters}>
-          Clear Filters
-        </button>
-        <select
-          value={sortBy}
-          className="sort-select"
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="latest">Latest</option>
-          <option value="confidence-desc">Confidence High to Low</option>
-          <option value="confidence-asc">Confidence Low to High</option>
-          <option value="item-id">Item ID</option>
-        </select>
-        <button className="btn btn-export" onClick={handleExportCsv}>
-          Export CSV
-        </button>
+        <div className="top-bar-actions">
+          <div className="date-range-btns">
+            {[["all","All"],["today","Today"],["7days","7 Days"],["30days","30 Days"]].map(([val, label]) => (
+              <button
+                key={val}
+                className={`date-range-btn${dateRange === val ? " active" : ""}`}
+                onClick={() => { setDateRange(val); setCurrentPage(1); }}
+              >{label}</button>
+            ))}
+          </div>
+          <input
+            type="text"
+            placeholder="Search Item ID"
+            className="search-input"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button
+            className="btn btn-green"
+            onClick={() => setShowFilterModal(true)}
+          >
+            Filters
+          </button>
+          <select
+            value={sortBy}
+            className="sort-select"
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="latest">Latest</option>
+            <option value="confidence-desc">Confidence High to Low</option>
+            <option value="confidence-asc">Confidence Low to High</option>
+            <option value="item-id">Item ID</option>
+          </select>
+          <button className="btn btn-export" onClick={handleExportCsv}>
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="history-kpis">
@@ -371,6 +403,9 @@ const Details = () => {
             </div>
 
             <div className="modal-footer">
+              <button className="btn btn-gray" onClick={handleClearFilters}>
+                Clear Filters
+              </button>
               <button
                 className="btn-close"
                 onClick={() => setShowFilterModal(false)}

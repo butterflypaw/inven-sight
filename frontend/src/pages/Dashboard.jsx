@@ -5,6 +5,8 @@ import DonutChart from "../components/DonutChart";
 import DamagedLineChart from "../components/DamagedLineChart";
 import { fetchDashboardStats, fetchDetails } from "../services/api";
 import { FaArrowTrendDown, FaArrowTrendUp, FaShieldHalved } from "react-icons/fa6";
+import ConfidenceHistogram from "../components/ConfidenceHistogram";
+import HourlyScansChart from "../components/HourlyScansChart";
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -96,6 +98,16 @@ const Dashboard = () => {
     ? ((intactCount / safeStats.totalScanned) * 100).toFixed(1)
     : "0.0";
   const trend = buildTrend(alerts);
+
+  const scansToday = alerts.filter((item) => {
+    if (!item.timestamp) return false;
+    const date = new Date(item.timestamp);
+    if (isNaN(date.getTime())) return false;
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return date >= startOfToday;
+  }).length;
+
   const damagedVsIntact = safeStats.damagedCount - intactCount;
   const riskTrendText =
     safeStats.totalScanned === 0
@@ -146,7 +158,7 @@ const Dashboard = () => {
 
       <div className="dashboard-cards">
         <Card
-          title="Total Scanned Today"
+          title="Total Scanned"
           value={formatMetric(safeStats.totalScanned)}
           color="#2563eb"
           loading={isLoading}
@@ -185,6 +197,13 @@ const Dashboard = () => {
             />
           }
         />
+        <Card
+          title="Scans Today"
+          value={formatMetric(scansToday)}
+          color="#7c3aed"
+          loading={isLoading}
+          chart={<HourlyScansChart records={alerts} />}
+        />
       </div>
 
       <div className="insight-grid">
@@ -212,9 +231,13 @@ const Dashboard = () => {
       </div>
 
       <div className="dashboard-section">
+        <h2>Confidence Distribution</h2>
+        <ConfidenceHistogram records={alerts} />
+      </div>
+
+      <div className="dashboard-section">
         <h2>Recent Scanned Item Details</h2>
         <DetailList alerts={alerts} />
-
       </div>
     </div>
   );

@@ -5,6 +5,7 @@
 
 .scanner-container h1 {
   font-size: 2rem;
+  margin-top: 0;
   margin-bottom: 0.3rem;
 }
 
@@ -177,20 +178,37 @@
   display: flex;
   flex-direction: column;
   padding: 1rem;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   background-color: #f7f9ff;
   min-height: 260px;
+  gap: 10px;
+}
+
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: 2px dashed #c3cfe0;
+  border-radius: 12px;
+  padding: 24px 20px;
+  width: 100%;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.upload-zone:hover {
+  border-color: #0ea5a1;
+  background: rgba(14, 165, 161, 0.04);
 }
 
 .file-input {
-  margin-bottom: 0.75rem;
+  cursor: pointer;
 }
 
 .upload-hint {
   color: #6b7280;
   font-size: 0.85rem;
-  margin-bottom: 0.5rem;
 }
 
 .file-name {
@@ -421,6 +439,16 @@
   color: #6b7280;
 }
 
+.layout.theme-dark .scan-badge.intact {
+  background: #14532d;
+  color: #86efac;
+}
+
+.layout.theme-dark .scan-badge.damaged {
+  background: #450a0a;
+  color: #fca5a5;
+}
+
 .layout.theme-dark .secondary-action,
 .layout.theme-dark .clear-recent-btn {
   border-color: rgba(148, 163, 184, 0.2);
@@ -444,9 +472,47 @@
   color: #dce8f9;
 }
 
+.layout.theme-dark .mode-switch button.active {
+  background: linear-gradient(120deg, #0ea5a1 0%, #0284c7 100%);
+  color: #ffffff;
+  border-color: transparent;
+}
+
 .layout.theme-dark .conveyor-config {
-  border-color: rgba(148, 163, 184, 0.2);
-  background: #101a2d;
+  border-color: rgba(125, 211, 252, 0.2);
+  background: #13243b;
+}
+
+.layout.theme-dark .conveyor-config h3 {
+  color: #f8fbff;
+}
+
+.layout.theme-dark .webcam-panel {
+  border-color: rgba(125, 211, 252, 0.18);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+
+.layout.theme-dark .webcam-header {
+  background: linear-gradient(130deg, #451a03 0%, #713f12 100%);
+  color: #fde68a;
+}
+
+.layout.theme-dark .scanned-header {
+  background: linear-gradient(130deg, #052e16 0%, #14532d 100%);
+  color: #86efac;
+}
+
+.layout.theme-dark .upload-preview {
+  border-color: var(--line);
+}
+
+.layout.theme-dark .upload-zone {
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.layout.theme-dark .upload-zone:hover {
+  border-color: #2dd4bf;
+  background: rgba(45, 212, 191, 0.06);
 }
 
 .layout.theme-dark .conveyor-grid label,

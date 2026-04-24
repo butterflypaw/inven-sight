@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +18,10 @@ import invensightLogo from "../assets/invensight-logo.svg";
 
 const Layout = ({ children, onLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [alertBadge, setAlertBadge] = useState(() => {
+    const v = window.localStorage.getItem("invensight-active-alert-count");
+    return v ? Number(v) : 0;
+  });
   const [theme, setTheme] = useState(() => {
     if (typeof window === "undefined") {
       return "light";
@@ -32,6 +36,12 @@ const Layout = ({ children, onLogout }) => {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem("invensight-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    const handleCount = (e) => setAlertBadge(e.detail);
+    window.addEventListener("invensight-alert-count-change", handleCount);
+    return () => window.removeEventListener("invensight-alert-count-change", handleCount);
+  }, []);
 
   const pageName = useMemo(() => {
     const map = {
@@ -78,6 +88,7 @@ const Layout = ({ children, onLogout }) => {
           <NavLink to="/alerts" className={navLinkClass} onClick={() => setMenuOpen(false)}>
             <FaBell className="icon" />
             Alerts
+            {alertBadge > 0 && <span className="nav-badge">{alertBadge}</span>}
           </NavLink>
           <NavLink to="/details" className={navLinkClass} onClick={() => setMenuOpen(false)}>
             <FaHistory className="icon" />
