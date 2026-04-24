@@ -41,7 +41,7 @@ Easily integrates into existing warehouse workflows. Future-ready for hardware l
 |---|---|
 | Frontend | React 19, React Router 7, MUI v7, MUI X Charts v8 |
 | Backend | Flask 3, Flask-CORS |
-| ML | TensorFlow 2 / Keras, MobileNetV2 (scene gating), OpenCV |
+| ML | TensorFlow 2 / Keras, MobileNetV2 (scene gating) |
 | Database | MongoDB (local) |
 | Image handling | Pillow, OpenCV |
 
