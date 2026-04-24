@@ -11,7 +11,11 @@ def create_app():
     uploads_dir = Path(__file__).resolve().parent / "uploads"
     dataset_dir = Path(__file__).resolve().parent / "dataset"
     uploads_dir.mkdir(parents=True, exist_ok=True)
-    CORS(app)  
+    CORS(app,
+         origins=["*"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         allow_headers=["Content-Type", "Authorization"]
+    )
     app.register_blueprint(predict_bp)
     app.register_blueprint(data_bp)
     app.register_blueprint(auth_bp)
