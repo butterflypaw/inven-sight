@@ -43,6 +43,7 @@ const HourlyScansChart = ({ records }) => {
         xAxis={[{ data: BUCKET_LABELS, scaleType: "point" }]}
         series={[{ curve: "linear", data, color }]}
         height={150}
+        margin={{ left: 10, right: 30 }}
         legend={{ hidden: true }}
         sx={{
           "& .MuiChartsAxis-line, & .MuiChartsAxis-tick": { stroke: axisColor },

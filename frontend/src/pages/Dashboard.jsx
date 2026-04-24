@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../styles/Dashboard.css";
 import DetailList from "../components/DetailList"; 
-import DonutChart from "../components/DonutChart";
 import DamagedLineChart from "../components/DamagedLineChart";
 import { fetchDashboardStats, fetchDetails } from "../services/api";
 import { FaArrowTrendDown, FaArrowTrendUp, FaShieldHalved } from "react-icons/fa6";
@@ -139,17 +138,21 @@ const Dashboard = () => {
   return (
     <div className="dashboard-header-banner">
       <div className="dashboard-header">
+        <div className="header-total-count">
+          <span className="label">Total Scanned</span>
+          <strong>{isLoading ? "--" : safeStats.totalScanned}</strong>
+        </div>
         <h1>Inventory Overview</h1>
         <p>Monitor scanning activity, damage reports, and stock levels</p>
 
         <div className="header-stats">
           <div className="header-stat-card">
-            <span className="label">Damage Rate</span>
+            <span className="label">Damaged Percentage</span>
             <strong>{isLoading ? "--" : `${damageRate}%`}</strong>
-            <span className="muted">Last 24 hours</span>
+            <span className="muted">Share of scans marked damaged</span>
           </div>
           <div className="header-stat-card">
-            <span className="label">Intact Rate</span>
+            <span className="label">Intact Percentage</span>
             <strong>{isLoading ? "--" : `${intactRate}%`}</strong>
             <span className="muted">Share of scans marked intact</span>
           </div>
@@ -157,18 +160,6 @@ const Dashboard = () => {
       </div>
 
       <div className="dashboard-cards">
-        <Card
-          title="Total Scanned"
-          value={formatMetric(safeStats.totalScanned)}
-          color="#2563eb"
-          loading={isLoading}
-          chart={
-            <DonutChart
-              damaged={safeStats.damagedCount}
-              intact={intactCount}
-            />
-          }
-        />
         <Card
           title="Damaged Items"
           value={formatMetric(safeStats.damagedCount)}
