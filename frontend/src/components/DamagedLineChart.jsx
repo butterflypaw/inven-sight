@@ -38,6 +38,7 @@ const DamagedLineChart = ({
           },
         ]}
         height={150}
+        margin={{ left: 10, right: 30 }}
         legend={{ hidden: true }}
         sx={{
           '& .MuiChartsLegend-root': {
