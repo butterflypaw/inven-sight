@@ -81,14 +81,14 @@ const Layout = ({ children, onLogout }) => {
             <FaBarcode className="icon" />
             Smart Scan
           </NavLink>
-          <NavLink to="/inventory" className={navLinkClass} onClick={() => setMenuOpen(false)}>
-            <FaBoxes className="icon" />
-            Inventory
-          </NavLink>
           <NavLink to="/alerts" className={navLinkClass} onClick={() => setMenuOpen(false)}>
             <FaBell className="icon" />
             Alerts
             {alertBadge > 0 && <span className="nav-badge">{alertBadge}</span>}
+          </NavLink>
+          <NavLink to="/inventory" className={navLinkClass} onClick={() => setMenuOpen(false)}>
+            <FaBoxes className="icon" />
+            Inventory
           </NavLink>
           <NavLink to="/details" className={navLinkClass} onClick={() => setMenuOpen(false)}>
             <FaHistory className="icon" />
