@@ -5,6 +5,7 @@ from data_store import authenticate_user, create_user
 auth_bp = Blueprint("auth_bp", __name__)
 
 
+
 @auth_bp.route("/auth/register", methods=["POST"])
 def register():
     payload = request.get_json(silent=True) or {}

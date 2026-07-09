@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from flask import Flask, send_from_directory
+from flask import Flask, make_response, request, send_from_directory
 from flask_cors import CORS
 from routes.predict import predict_bp
 from routes.data_api import data_bp
@@ -16,6 +16,16 @@ def create_app():
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
          allow_headers=["Content-Type", "Authorization"]
     )
+
+    @app.before_request
+    def handle_preflight():
+        if request.method == "OPTIONS":
+            resp = make_response()
+            resp.headers["Access-Control-Allow-Origin"] = "*"
+            resp.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            resp.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+            return resp
+
     app.register_blueprint(predict_bp)
     app.register_blueprint(data_bp)
     app.register_blueprint(auth_bp)
